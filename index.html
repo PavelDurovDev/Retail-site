@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru" class="scroll-smooth">
 <head>
-    <script src="https://cdn.tailwindcss.com"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RealMAGNATE - Построй свою бизнес-империю</title>
@@ -26,7 +25,7 @@
              background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2744&auto=format&fit=crop');
             background-size: cover;
             background-position: center center;
-            background-attachment: fixed;
+           /* background-attachment: fixed; */
         }
         .hero-bg {
             background-image: url('https://images.unsplash.com/photo-1534430480872-3498386e7856?q=80&w=2940&auto=format&fit=crop');
@@ -71,7 +70,8 @@
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch; /* for smooth scrolling on iOS */
-            scrollbar-width: none; /* for Firefox */
+            height: None;
+            width: None; /* for Firefox */
         }
         .carousel::-webkit-scrollbar {
             display: none; /* for Chrome, Safari, and Opera */
@@ -81,6 +81,12 @@
             width: 80%;
             scroll-snap-align: center;
             margin-right: 1rem;
+        }
+        @media (min-width: 640px) {
+            .carousel-item { width: 40%; }
+        }
+        @media (min-width: 1024px) {
+            .carousel-item { width: 30%; }
         }
         .faq-answer {
             max-height: 0;
@@ -119,7 +125,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <body class="text-slate-900 body-bg">
-
+<!-- Добавьте модальное окно перед закрывающим </body> -->
+<div id="buy-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] hidden">
+  <div class="bg-white rounded-xl p-8 max-w-xs w-full text-center shadow-2xl">
+    <h3 class="text-xl font-bold mb-4 text-cyan-700">Внимание!</h3>
+    <p class="mb-6 text-slate-700">Вы будете перенаправлены на сайт <b>GetGems.io</b> для покупки NFT.</p>
+    <div class="flex justify-center gap-4">
+      <button id="modal-cancel" class="px-4 py-2 rounded bg-slate-200 hover:bg-slate-300 font-semibold">Отмена</button>
+      <button id="modal-confirm" class="px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-semibold">Перейти</button>
+    </div>
+  </div>
+</div>
     <header id="home" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden hero-bg">
         <div class="absolute inset-0 bg-black opacity-30 z-10"></div>
         <div class="relative z-20 px-4">
@@ -440,8 +456,8 @@
                         </ul>
                     </div>
                      <div>
-                            <div class="max-w-[400px] mx-auto relative" style="height: 520px;">
-                                 <canvas id="tokenomicsChart" width="400" height="520"></canvas>
+                            <div class="max-w-[300px] mx-auto relative" style="height: 420px;">
+                                 <canvas id="tokenomicsChart" width="300" height="420"></canvas>
                             </div>
 
                         </div>
@@ -640,8 +656,8 @@ new Chart(tokenomicsCtx, {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        top: 20,
-        bottom: 10 // увеличьте до нужного значения
+        top: 10,
+        bottom: 5 // увеличьте до нужного значения
       }
     },
     cutout: '50%',
@@ -681,24 +697,68 @@ new Chart(tokenomicsCtx, {
         { src: 'Assets/Images/NFT/office-480.jpg', label: 'Office 480 m²' },
         { src: 'Assets/Images/NFT/office-750.jpg', label: 'Office 750 m²' }
     ];
+    
+// Замените обработчик на кнопку "Купить" в цикле nftImages.forEach:
 
-    nftImages.forEach(nft => {
-        const item = document.createElement('div');
-        item.className = 'carousel-item relative rounded-lg overflow-hidden shadow-lg';
-        item.innerHTML = `
-            <img src="${nft.src}" alt="${nft.label}" class="w-full h-full object-cover">
-            <div class="absolute bottom-0 left-0 right-0 p-4 bg-black/50 text-white">
-                <h4 class="font-bold text-lg">${nft.label}</h4>
-            </div>
-        `;
-        carousel.appendChild(item);
+nftImages.forEach(nft => {
+    const item = document.createElement('div');
+    item.className = 'carousel-item relative rounded-lg overflow-hidden shadow-lg';
+    item.innerHTML = `
+        <img src="${nft.src}" alt="${nft.label}" class="w-full h-full object-cover">
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-black/50 text-white flex items-center justify-between gap-2">
+            <h4 class="font-bold text-lg">${nft.label}</h4>
+            <a href="#" class="ml-4 inline-block bg-cyan-500 hover:bg-cyan-700 text-white font-bold py-1 px-4 rounded buy-btn whitespace-nowrap">
+                Купить
+            </a>
+        </div>
+    `;
+    carousel.appendChild(item);
+
+    // Модальное окно
+    const buyBtn = item.querySelector('.buy-btn');
+    buyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const modal = document.getElementById('buy-modal');
+        modal.classList.remove('hidden');
+
+        // Сохраняем ссылку для перехода
+        modal.dataset.buyUrl = `https://getgems.io/collection/${encodeURIComponent(nft.label)}`;
     });
+});
+
+// Модальное окно: обработка кнопок
+const modal = document.getElementById('buy-modal');
+const modalCancel = document.getElementById('modal-cancel');
+const modalConfirm = document.getElementById('modal-confirm');
+
+modalCancel.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal.dataset.buyUrl = '';
+});
+
+modalConfirm.addEventListener('click', () => {
+    const url = modal.dataset.buyUrl;
+    if (url) window.open(url, '_blank');
+    modal.classList.add('hidden');
+    modal.dataset.buyUrl = '';
+});
+
+
+carousel.addEventListener('wheel', (e) => {
+    // Только если вертикальное колесо
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        // Ограничиваем шаг (например, 60 пикселей за один "щелчок" колеса)
+        const step = 800;
+        carousel.scrollLeft += Math.sign(e.deltaY) * step;
+    }
+}, { passive: false });
 
     let isDown = false;
     let startX;
     let scrollLeft;
 
-    carousel.addEventListener('mousedown', (e) => {
+carousel.addEventListener('mousedown', (e) => {
         isDown = true;
         carousel.classList.add('cursor-grabbing');
         startX = e.pageX - carousel.offsetLeft;
@@ -1003,7 +1063,6 @@ new Chart(tokenomicsCtx, {
     });
 });
 </script>
-</body>
 <style>
     .faq-answer {
       display: none;
@@ -1021,7 +1080,6 @@ new Chart(tokenomicsCtx, {
       transform: rotate(45deg);
     }
   </style>
-
-  </script>
-
+</body>
 </html>
+
