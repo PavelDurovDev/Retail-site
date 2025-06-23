@@ -440,8 +440,8 @@
                         </ul>
                     </div>
                      <div>
-                         <<div class="chart-container max-w-sm pt-10">
-                             <canvas id="tokenomicsChart" style="width: 100%; height: 600px; display: block;"></canvas>
+                         <div class="chart-container max-w-sm pt-10">
+                            <canvas id="tokenomicsChart"></canvas>
                         </div>
                      </div>
                  </div>
@@ -618,12 +618,7 @@ new Chart(tokenomicsCtx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: 50,
-        layout: {
-            padding: {
-                top: 40
-            }
-        },
+        cutout: 50,  // Обрати внимание — число, не строка
         plugins: {
             legend: {
                 position: 'bottom',
@@ -641,7 +636,7 @@ new Chart(tokenomicsCtx, {
                 align: 'outside',
                 offset: 10,
                 clamp: true,
-                clip: false
+                clip: false  // <-- добавлено сюда
             }
         }
     },
