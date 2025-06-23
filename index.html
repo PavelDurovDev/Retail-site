@@ -967,7 +967,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-    document.querySelectorAll('.faq-question').forEach(q => {
+</body>
+<style>
+    .faq-answer {
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    .faq-icon {
+      transition: transform 0.3s ease;
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(45deg);
+    }
+  </style>
+  
+  </script>
+  document.querySelectorAll('.faq-question').forEach(q => {
       q.addEventListener('click', () => {
         const item = q.parentElement;
         const isActive = item.classList.contains('active');
@@ -977,5 +997,5 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   </script>
-</body>
+
 </html>
