@@ -618,7 +618,12 @@ new Chart(tokenomicsCtx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: 50,  // Обрати внимание — число, не строка
+        cutout: 50,
+        layout: {
+            padding: {
+                top: 40
+            }
+        },
         plugins: {
             legend: {
                 position: 'bottom',
@@ -636,7 +641,7 @@ new Chart(tokenomicsCtx, {
                 align: 'outside',
                 offset: 10,
                 clamp: true,
-                clip: false  // <-- добавлено сюда
+                clip: false
             }
         }
     },
