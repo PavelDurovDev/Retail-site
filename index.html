@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // Create Tokenomics Chart
-    const tokenomicsCtx = document.getElementById('tokenomicsChart').getContext('2d');
+    const tokenomicsCtx = document.getElementById('tokenomicsChart').getContext('3d');
     new Chart(tokenomicsCtx, {
         type: 'doughnut',
         data: {
@@ -985,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
       transform: rotate(45deg);
     }
   </style>
-  
+
   </script>
   document.querySelectorAll('.faq-question').forEach(q => {
       q.addEventListener('click', () => {
