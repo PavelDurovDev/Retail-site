@@ -636,11 +636,14 @@ new Chart(tokenomicsCtx, {
                 align: 'outside',
                 offset: 10,
                 clamp: true,
+                clip: false  // <-- добавлено сюда
             }
         }
     },
     plugins: [ChartDataLabels]
 });
+
+
 
     const carousel = document.getElementById('carousel');
     const nftImages = [
