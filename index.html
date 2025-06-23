@@ -600,9 +600,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-   // Предполагается, что Chart.js и chartjs-plugin-datalabels уже подключены
+    // Create Tokenomics Chart
+    // Убедись, что chart.js и chartjs-plugin-datalabels подключены
 
-// Регистрируем плагин
 Chart.register(ChartDataLabels);
 
 const tokenomicsCtx = document.getElementById('tokenomicsChart').getContext('2d');
@@ -621,7 +621,7 @@ new Chart(tokenomicsCtx, {
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '50%',
+        cutout: 50,  // Обрати внимание — число, не строка
         plugins: {
             legend: {
                 position: 'bottom',
@@ -632,17 +632,16 @@ new Chart(tokenomicsCtx, {
             },
             tooltip: { enabled: true },
             datalabels: {
-                color: '#0f172a',          // цвет текста лучше сделать темным для читаемости
+                color: '#0f172a',
                 font: { weight: 'bold', size: 14 },
                 formatter: (value) => value + '%',
-                anchor: 'end',             // вынос меток наружу
+                anchor: 'end',
                 align: 'outside',
                 offset: 10,
-                clamp: true                // не выходить за пределы графика
+                clamp: true,
             }
         }
     },
-    // Включаем плагин для этого графика
     plugins: [ChartDataLabels]
 });
 
