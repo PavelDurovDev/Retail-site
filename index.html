@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RealMAGNATE - Построй свою бизнес-империю</title>
+    <!-- Chosen Palette: "Solarpunk City" - A palette using a light base (slate-100) with dark text for readability, and clean, bright accent colors (cyan, lime, yellow) to evoke a sense of clean technology and nature integrated with futuristic architecture. -->
+    <!-- Application Structure Plan: A single-page, top-down narrative structure mirroring the source presentation's logical flow. It starts with a Hero section, followed by thematic sections for Concept, an interactive Gameplay Mechanics deep-dive (the core of the app), Asset Ownership, a dynamic Roadmap, and a final Call to Action. A sticky navigation bar allows users to jump between these sections. This structure was chosen because it guides new users through the project's complexities step-by-step, from high-level concept to detailed mechanics, in an intuitive and engaging manner. The centerpiece is the interactive simulation of the value flow, designed to make the core economic loop tangible and easy to understand. -->
+    <!-- Visualization & Content Choices: 
+        - "Value Flow" (Slide 5): Goal: Explain hierarchical $RENT distribution. Viz: An interactive diagram combining HTML/CSS structure with a Chart.js donut chart. Interaction: Users click buttons to select a level (City, District, etc.), and the chart dynamically updates to show the token split at that level, allowing users to "drill down" into the data. Justification: Actively engaging with the core economic model fosters deeper understanding than a static image. Library: Chart.js (Canvas).
+        - "Office Parameters" (Slide 3): Goal: Show how management affects earnings. Viz: An interactive card with sliders for "Price," "Condition," "Prestige." Interaction: Adjusting sliders updates a "Potential Earnings" display in real-time. Justification: Makes the abstract concept of office management concrete and immediately understandable. Method: HTML/JS.
+        - "Roadmap" (Slide 8): Goal: Display project timeline. Viz: A vertical timeline using HTML/CSS. Interaction: Hovering over timeline points reveals detailed information. Justification: Clean, standard UI pattern for presenting chronological data without clutter. Method: HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #0f172a; /* text-slate-900 */
+        }
+        .body-bg {
+             background-image: url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2744&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+        }
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1534430480872-3498386e7856?q=80&w=2940&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center center;
+        }
+        .section-bg {
+            background-color: rgba(241, 245, 249, 0.9); /* bg-slate-100 with 90% opacity */
+            backdrop-filter: blur(5px);
+        }
+        .text-glow {
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 350px;
+        }
+        .panel {
+            background-color: #f1f5f9;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 
+                inset 0 2px 4px rgba(255,255,255,0.7), 
+                0 10px 30px rgba(0,0,0,0.1);
+        }
+        .size-btn, .tax-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .size-btn.active, .tax-btn.active {
+            background-color: #06b6d4; /* cyan-600 */
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+        }
+        .carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch; /* for smooth scrolling on iOS */
+            scrollbar-width: none; /* for Firefox */
+        }
+        .carousel::-webkit-scrollbar {
+            display: none; /* for Chrome, Safari, and Opera */
+        }
+        .carousel-item {
+            flex: 0 0 auto;
+            width: 80%;
+            scroll-snap-align: center;
+            margin-right: 1rem;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 1rem;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 200px; /* Adjust as needed */
+            padding: 0 1rem 1rem 3rem;
+            transition: max-height 0.5s ease-in;
+        }
+        .faq-icon {
+            transition: transform 0.3s ease;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+         @media (min-width: 640px) {
+            .carousel-item {
+                width: 40%;
+            }
+        }
+        @media (min-width: 1024px) {
+            .carousel-item {
+                width: 30%;
+            }
+        }
+        #roadmap-chart-container {
+            height: 400px;
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="text-slate-900 body-bg">
+
+    <header id="home" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden hero-bg">
+        <div class="absolute inset-0 bg-black opacity-30 z-10"></div>
+        <div class="relative z-20 px-4">
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-black uppercase tracking-wider text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">RealMAGNATE</h1>
+            <p class="mt-4 text-lg md:text-2xl text-white font-light" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Построй свою бизнес-империю на блокчейне TON.</p>
+        </div>
+    </header>
+
+    <nav class="sticky top-0 bg-white/80 backdrop-blur-lg z-50 shadow-md">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                 <a href="#home" class="flex items-center gap-2">
+                    <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="Logo" class="w-8 h-8">
+                    <span class="font-bold text-xl">RealMAGNATE</span>
+                </a>
+                <div class="hidden md:flex flex-wrap justify-center space-x-6 text-sm">
+                    <a href="#concept" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Концепция</a>
+                    <a href="#economics" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Экономика</a>
+                    <a href="#mechanics" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Механика</a>
+                    <a href="#nft-gallery" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">NFT</a>
+                    <a href="#assets" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Активы</a>
+                    <a href="#tokenomics" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Токеномика</a>
+                    <a href="#roadmap" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">Карта</a>
+                    <a href="#faq" class="text-slate-600 hover:text-cyan-600 font-medium transition-colors duration-300">FAQ</a>
+                </div>
+                 <div class="md:hidden">
+                    <button id="menu-btn" class="text-slate-800 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white/90">
+            <a href="#concept" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Концепция</a>
+            <a href="#economics" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Экономика</a>
+            <a href="#mechanics" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Механика</a>
+            <a href="#nft-gallery" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">NFT</a>
+            <a href="#assets" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Активы</a>
+            <a href="#tokenomics" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Токеномика</a>
+            <a href="#roadmap" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">Карта</a>
+            <a href="#faq" class="block py-2 px-4 text-sm text-slate-700 hover:bg-cyan-50">FAQ</a>
+        </div>
+    </main>
+
+    <main>
+        <section id="concept" class="py-20 md:py-28 section-bg">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-5xl font-bold text-cyan-600 mb-6 text-glow">Новая экономическая реальность</h2>
+                <p class="max-w-3xl mx-auto text-base md:text-lg text-slate-700 mb-12">
+                    Это инновационный градостроительный симулятор на блокчейне TON, где вы управляете Web 3.0 недвижимостью — офисом, зданием, районом, городом и даже штатом! Ваша цель — создать самую прибыльную бизнес-империю, соревнуясь или сотрудничая с тысячами других игроков.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white/80 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl md:text-2xl font-bold text-cyan-700 mb-3">Управляйте</h3>
+                        <p class="text-sm md:text-base text-slate-600">Владейте уникальными NFT-офисами и настраивайте их параметры для максимальной прибыли.</p>
+                    </div>
+                    <div class="bg-white/80 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl md:text-2xl font-bold text-cyan-700 mb-3">Соревнуйтесь</h3>
+                        <p class="text-sm md:text-base text-slate-600">Боритесь за долю ежедневного пула токенов $RENT с другими игроками.</p>
+                    </div>
+                    <div class="bg-white/80 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl md:text-2xl font-bold text-cyan-700 mb-3">Сотрудничайте</h3>
+                        <p class="text-sm md:text-base text-slate-600">Объединяйтесь с соседями, чтобы ваше здание стало лучшим в районе и городе.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="economics" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                 <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-12 text-glow">Описание Экономики Проекта</h2>
+                 <div class="max-w-4xl mx-auto space-y-6 text-slate-700 text-lg">
+                    <p>Вы начинаете свой путь в проекте с управления одним офисом, и конкурируя с вашими соседями в этом же здании, за предоставление лучших условий для арендаторов, которые вам за это платят токен $RENT за каждый ваш сданный m².</p>
+                    <p>Далее, в зависимости от средней цены всех офисов в вашем здании, формируется цена m² вашего здания, и теперь арендаторы будут выбирать здание с наиболее привлекательной ценой аренды, тем самым доходы вашего здания вырастут относительно ваших соседей.</p>
+                    <p>Далее, из совокупности показателей всех зданий в районе, формируется привлекательность Района, и теперь вы будете бороться за арендаторов с вашими соседями по другим Районам. Наиболее эффективные и привлекательные Районы привлекают больше арендаторов и больше оплат в токенах $RENT.</p>
+                    <p>Далее, все средние показатели районов города формируют характеристики Города, и вам предстоит с вашими соседями бороться за арендаторов с другими городами.</p>
+                    <p>Города формируют Штаты... (и так далее, до уровня всей игровой вселенной).</p>
+                    <p class="font-bold text-slate-800 pt-4">В итоге мы получаем мощный симбиоз экономического и социального симулятора, который позволяет в геймифицированной форме познакомиться с реальным девелоперским бизнесом, что подготовит наше комьюнити к следующим этапам развития проекта в сфере RWA.</p>
+                 </div>
+            </div>
+        </section>
+
+        <section id="mechanics" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">Ключевая Механика</h2>
+                
+                <div class="bg-white/80 rounded-2xl p-6 md:p-10 mb-12 shadow-2xl">
+                    <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4 text-center">Интерактивный Поток Ценности</h3>
+                    <p class="text-center max-w-4xl mx-auto mb-8 text-slate-700">
+                        Ежедневно общий пул токенов $RENT распределяется по иерархии. Управляйте общим пулом и параметрами Города А, чтобы увидеть, как эффективность объектов влияет на распределение по всей вертикали.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                        <div class="panel">
+                            <label for="totalRent" class="block mb-2 font-bold text-lg text-slate-800 text-center">Общий пул $RENT на сегодня</label>
+                            <div class="flex items-center justify-center gap-4">
+                                 <input type="range" id="totalRent" min="100" max="100000" step="100" value="50000" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer max-w-sm">
+                                <div class="flex items-center gap-2">
+                                    <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="RENT icon" class="w-8 h-8">
+                                    <span id="totalRentValue" class="font-bold text-cyan-600 text-xl">50 000</span>
+                                </div>
+                            </div>
+                             <p class="text-sm text-slate-600 mt-4 text-center">Токены $RENT распределяются интерактивно между всеми владельцами недвижимости, и больше всего токенов получают те кто наиболее эффективно управляют своей недвижимостью.</p>
+                        </div>
+                        <div class="panel">
+                             <h4 class="block mb-4 font-bold text-lg text-slate-800 text-center">Параметры Города А</h4>
+                             <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <label class="text-sm font-medium">Состояние города</label>
+                                        <span class="text-sm font-bold text-cyan-700 slider-value">1.00</span>
+                                    </div>
+                                    <input type="range" class="city-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.5" max="1" step="0.01" value="1" data-param="condition">
+                                </div>
+                                <div>
+                                     <div class="flex justify-between items-center mb-1">
+                                        <label class="text-sm font-medium">Престиж города</label>
+                                        <span class="text-sm font-bold text-cyan-700 slider-value">1.00</span>
+                                    </div>
+                                    <input type="range" class="city-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.5" max="1" step="0.01" value="1" data-param="prestige">
+                                </div>
+                                <div>
+                                     <div class="flex justify-between items-center mb-1">
+                                        <label class="text-sm font-medium">Реклама города</label>
+                                         <span class="text-sm font-bold text-cyan-700 slider-value">1.00</span>
+                                    </div>
+                                    <input type="range" class="city-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.5" max="1" step="0.01" value="1" data-param="advertising">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-700 mb-2">1. Города</h4>
+                            <div class="chart-container">
+                                <canvas id="cityChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-700 mb-2">2. Районы (в Городе А)</h4>
+                             <div class="chart-container">
+                                <canvas id="districtChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-700 mb-2">3. Здания (в Районе А-1)</h4>
+                             <div class="chart-container">
+                                <canvas id="buildingChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-16">
+                    <div class="bg-white/80 rounded-lg p-6 md:p-8 shadow-xl">
+                        <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Ваш личный актив — Офис NFT</h3>
+                        <p class="mb-4 text-slate-700">Основа вашего дохода — NFT-офис. Управляйте его параметрами, чтобы максимизировать прибыль. Попробуйте изменить параметры и посмотрите, как это повлияет на потенциальный доход.</p>
+                         <div class="space-y-4">
+                            <div>
+                                <label class="font-bold mb-2 block">Площадь офиса, м²</label>
+                                <div id="office-size-selector" class="grid grid-cols-4 gap-3 mb-4">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="font-bold">Цена аренды (за м²)</label>
+                                    <span class="text-sm font-bold text-cyan-700 office-slider-value">1.15</span>
+                                </div>
+                                <input type="range" class="office-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.8" max="1.5" step="0.01" value="1.15" data-param="price">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="font-bold">Состояние (Ремонт)</label>
+                                    <span class="text-sm font-bold text-cyan-700 office-slider-value">1.00</span>
+                                </div>
+                                <input type="range" class="office-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.5" max="1" step="0.01" value="1" data-param="condition">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="font-bold">Престиж (Реклама)</label>
+                                    <span class="text-sm font-bold text-cyan-700 office-slider-value">1.00</span>
+                                </div>
+                                <input type="range" class="office-slider w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer" min="0.8" max="1" step="0.01" value="1" data-param="prestige">
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-slate-100/80 p-4 rounded text-center">
+                            <p class="text-sm text-slate-600">Ваш доход от аренды, $RENT в день:</p>
+                            <div class="flex justify-center items-center gap-2">
+                                <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="RENT icon" class="w-8 h-8">
+                                <span id="earnings" class="text-2xl font-bold text-cyan-600">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white/80 rounded-lg p-6 md:p-8 shadow-xl">
+                         <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Стратегия: Конкурируй и Сотрудничай</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-xl font-bold text-red-500 mb-2">Внутренняя Конкуренция</h4>
+                                <p class="text-slate-700">Внутри одного здания вы боретесь с соседями за долю токенов. Лучшая цена, ремонт и престиж — ваш ключ к победе.</p>
+                            </div>
+                             <div>
+                                <h4 class="text-xl font-bold text-green-500 mb-2">Внешняя Кооперация</h4>
+                                <p class="text-slate-700">Все владельцы офисов в здании — одна команда. Вы объединяетесь, чтобы ваше здание стало лучшим в районе. Помните: слабый игрок тянет на дно всё здание!</p>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="nft-gallery" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">Галерея NFT</h2>
+                <div id="carousel" class="carousel cursor-grab">
+                    <!-- Carousel items will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section id="assets" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">Расширяйте Влияние</h2>
+                <p class="text-center max-w-3xl mx-auto text-slate-700 mb-12">Каждому офису нужно здание, каждому зданию - район, кажому району - город. Кроме аренды офисов, вы можете выступать в качестве Магната - быть владельцем зданий, районов или городов в которых размещаются владельцы офисов. Каждый офис платит выбранный вами налог. Но будьте рассчетливы - при высоких налогах - не все офисы захотят размещаться в вашем городе, а при низких - вы будете получать меньше налогов чем ваши соседи.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                    <!-- Building Card -->
+                    <div class="asset-card bg-white/80 p-6 rounded-lg shadow-lg flex flex-col">
+                        <h3 class="text-2xl font-bold text-yellow-600 mb-4">Владелец Здания</h3>
+                        <div class="space-y-4 flex-grow">
+                            <p class="text-sm text-slate-600">Устанавливайте налог и получайте доход со всех офисов в вашем здании.</p>
+                            <div>
+                                <label class="font-bold text-sm">Ставка налога:</label>
+                                <div class="tax-selector flex gap-2 mt-1">
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm active" data-tax="0.05">5%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.07">7%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.10">10%</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="font-bold text-sm">Количество офисов: <span class="office-count font-bold text-cyan-700">5</span></label>
+                                <input type="range" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer offices-slider" min="1" max="10" step="1" value="5">
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-300">
+                             <p class="text-sm text-slate-600">Ваш налоговый доход, $RENT в день:</p>
+                             <div class="flex justify-center items-center gap-2">
+                                <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="RENT icon" class="w-8 h-8">
+                                <span class="income-display text-2xl font-bold text-green-600"></span>
+                             </div>
+                        </div>
+                    </div>
+                     <!-- District Card -->
+                    <div class="asset-card bg-white/80 p-6 rounded-lg shadow-lg flex flex-col">
+                        <h3 class="text-2xl font-bold text-yellow-600 mb-4">Владелец Района</h3>
+                        <div class="space-y-4 flex-grow">
+                             <p class="text-sm text-slate-600">Получайте доход со всех зданий в вашем районе, владея долями.</p>
+                             <div>
+                                <label class="font-bold text-sm">Ставка налога:</label>
+                                <div class="tax-selector flex gap-2 mt-1">
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm active" data-tax="0.05">5%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.07">7%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.10">10%</button>
+                                </div>
+                            </div>
+                             <div>
+                                <label class="font-bold text-sm">Количество офисов: <span class="office-count font-bold text-cyan-700">50</span></label>
+                                <input type="range" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer offices-slider" min="10" max="100" step="1" value="50">
+                            </div>
+                        </div>
+                         <div class="mt-4 pt-4 border-t border-slate-300">
+                             <p class="text-sm text-slate-600">Ваш налоговый доход, $RENT в день:</p>
+                             <div class="flex justify-center items-center gap-2">
+                                <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="RENT icon" class="w-8 h-8">
+                                <span class="income-display text-2xl font-bold text-green-600"></span>
+                             </div>
+                        </div>
+                    </div>
+                     <!-- City Card -->
+                    <div class="asset-card bg-white/80 p-6 rounded-lg shadow-lg flex flex-col">
+                        <h3 class="text-2xl font-bold text-yellow-600 mb-4">Владелец Города</h3>
+                        <div class="space-y-4 flex-grow">
+                            <p class="text-sm text-slate-600">Станьте магнатом, получая доход со всех районов вашего города.</p>
+                            <div>
+                                <label class="font-bold text-sm">Ставка налога:</label>
+                                <div class="tax-selector flex gap-2 mt-1">
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm active" data-tax="0.05">5%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.07">7%</button>
+                                    <button class="tax-btn flex-1 bg-cyan-100 text-cyan-800 font-bold py-1 px-2 rounded-md text-sm" data-tax="0.10">10%</button>
+                                </div>
+                            </div>
+                             <div>
+                                <label class="font-bold text-sm">Количество офисов: <span class="office-count font-bold text-cyan-700">500</span></label>
+                                <input type="range" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer offices-slider" min="100" max="1000" step="10" value="500">
+                            </div>
+                        </div>
+                         <div class="mt-4 pt-4 border-t border-slate-300">
+                             <p class="text-sm text-slate-600">Ваш налоговый доход, $RENT в день:</p>
+                             <div class="flex justify-center items-center gap-2">
+                                <img src="https://i.ibb.co/L15J1yQ/rent-token-logo.png" alt="RENT icon" class="w-8 h-8">
+                                <span class="income-display text-2xl font-bold text-green-600"></span>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tokenomics" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                 <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">Токеномика $RENT</h2>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div class="text-slate-700 space-y-4">
+                        <p class="text-lg">Общая эмиссия токена **$RENT** составляет **100,000,000**.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><span class="font-bold">95% (95,000,000)</span> — Награды игрокам. Основная часть токенов распределяется между владельцами NFT-недвижимости за эффективное управление.</li>
+                            <li><span class="font-bold">3% (3,000,000)</span> — Маркетинговый бюджет. Средства для продвижения проекта и привлечения новых игроков.</li>
+                             <li><span class="font-bold">2% (2,000,000)</span> — Команда. Мотивация для команды разработчиков на долгосрочное развитие проекта.</li>
+                        </ul>
+                    </div>
+                     <div>
+                         <div class="chart-container max-w-sm">
+                            <canvas id="tokenomicsChart"></canvas>
+                        </div>
+                     </div>
+                 </div>
+
+                 <div class="mt-16 space-y-12">
+                     <div>
+                         <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Этап 1: Внутреннее применение</h3>
+                         <p class="text-slate-700">На первом этапе токен **$RENT** широко применяется внутри приложения на: улучшение параметров офисов, зданий, районов, городов, а также на постройку новых фундаментов для владельцев территорий. Это создает постоянный внутренний спрос и циркуляцию токена в экосистеме игры.</p>
+                     </div>
+                      <div>
+                         <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Этап 2: Внешнее применение (RWA)</h3>
+                         <p class="text-slate-700 mb-2">На втором этапе планируется внешнее применение токена в системе RWA (Real World Assets).</p>
+                         <p class="text-slate-600 italic border-l-4 border-cyan-500 pl-4">RWA – это концепция, которая связывает традиционные финансы (TradFi) с децентрализованными финансами (DeFi) путем токенизации реальных активов. Токенизация позволяет представлять права собственности на эти активы в цифровой форме, что открывает новые возможности для инвестиций, торговли и управления.</p>
+                     </div>
+                      <div>
+                         <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Выводы</h3>
+                         <p class="text-slate-700">Благодаря продуманной системе применения, токен **$RENT** будет постоянно востребован как внутренним (улучшения, постройки), так и внешним (интеграция с RWA) спросом. Это создает здоровую экономическую модель, которая будет гарантированно увеличивать его стоимость в долгосрочной перспективе.</p>
+                     </div>
+                 </div>
+
+            </div>
+        </section>
+
+        <section id="roadmap" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">План Застройки</h2>
+                <div id="roadmap-chart-container" class="bg-white/50 rounded-lg">
+                    <canvas id="roadmapChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <section id="faq" class="py-20 md:py-28 section-bg mt-1">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl md:text-5xl font-bold text-center text-cyan-600 mb-16 text-glow">Часто Задаваемые Вопросы (FAQ)</h2>
+                <div class="max-w-4xl mx-auto space-y-4" id="faq-container">
+                    <!-- FAQ items will be generated here by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section id="community" class="py-20 md:py-28 section-bg mt-1">
+             <div class="container mx-auto px-4 text-center">
+                 <h2 class="text-3xl md:text-5xl font-bold text-cyan-600 mb-6 text-glow">Начните строить будущее. Сегодня.</h2>
+                 <p class="max-w-2xl mx-auto text-lg text-slate-700 mb-12">
+                    Присоединяйтесь к нашему сообществу, чтобы быть в курсе всех новостей, участвовать в обсуждениях и стать одним из первых магнатов нашего мегаполиса.
+                </p>
+                <div class="flex justify-center items-center space-x-6">
+                    <a href="#" class="text-slate-500 hover:text-cyan-600 transition-colors duration-300">
+                        <span class="text-4xl">Сайт</span>
+                    </a>
+                    <a href="#" class="text-slate-500 hover:text-cyan-600 transition-colors duration-300">
+                        <span class="text-4xl">Telegram</span>
+                    </a>
+                     <a href="#" class="text-slate-500 hover:text-cyan-600 transition-colors duration-300">
+                         <span class="text-4xl">Twitter/X</span>
+                    </a>
+                </div>
+             </div>
+        </section>
+    </main>
+    
+    <footer class="bg-slate-200/90 py-6">
+        <div class="container mx-auto px-4 text-center text-slate-500">
+            &copy; 2025 RealMAGNATE. Все права защищены.
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    Chart.register(ChartDataLabels);
+
+    const totalRentSlider = document.getElementById('totalRent');
+    const totalRentValue = document.getElementById('totalRentValue');
+    const officeSliders = document.querySelectorAll('.office-slider');
+    const citySliders = document.querySelectorAll('.city-slider');
+    const earningsDisplay = document.getElementById('earnings');
+    const officeSizeSelector = document.getElementById('office-size-selector');
+    const assetCards = document.querySelectorAll('.asset-card');
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    mobileMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+    });
+
+
+    let selectedOfficeSize = 55;
+    const officeData = [
+        { size: 10, rarity: 'Basic', color: 'bg-slate-300' },
+        { size: 25, rarity: 'Basic', color: 'bg-slate-300' },
+        { size: 55, rarity: 'Rare', color: 'bg-green-200' },
+        { size: 115, rarity: 'Rare', color: 'bg-green-200' },
+        { size: 180, rarity: 'Epic', color: 'bg-blue-200' },
+        { size: 250, rarity: 'Epic', color: 'bg-blue-200' },
+        { size: 480, rarity: 'Legendary', color: 'bg-orange-200' },
+        { size: 750, rarity: 'Legendary', color: 'bg-orange-200' }
+    ];
+
+    const baseData = {
+        city: {
+            labels: ['Город А', 'Город Б'],
+            base: [50, 50],
+            growthFactor: 20,
+            colors: ['#06b6d4', '#67e8f9']
+        },
+        district: {
+            labels: ['Район А-1', 'Район А-2', 'Район А-3'],
+            base: [50, 30, 20],
+            growthFactor: 30,
+            colors: ['#0891b2', '#22d3ee', '#a5f3fc']
+        },
+        building: {
+            labels: ['Здание 1', 'Здание 2', 'Здание 3', 'Здание 4'],
+            base: [40, 25, 20, 15],
+            growthFactor: 25,
+            colors: ['#0e7490', '#0891b2', '#22d3ee', '#67e8f9']
+        }
+    };
+
+    const dataLabelFormatter = (value, ctx) => {
+        const label = ctx.chart.data.labels[ctx.dataIndex] || '';
+        const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+        const percentage = ((value / total) * 100).toFixed(0) + '%';
+        const poolForThisLevel = ctx.chart.pool || 0;
+        const tokenValue = Math.round(poolForThisLevel * (value / 100)).toLocaleString('ru-RU');
+        return `${label}\n${percentage}\n${tokenValue}`;
+    };
+
+    const createChart = (ctx, chartData) => {
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false },
+                    datalabels: {
+                        color: '#0f172a',
+                        textAlign: 'center',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: dataLabelFormatter,
+                    }
+                },
+                cutout: '60%',
+            }
+        });
+    };
+    
+    // Create Tokenomics Chart
+    const tokenomicsCtx = document.getElementById('tokenomicsChart').getContext('2d');
+    new Chart(tokenomicsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Награды игрокам', 'Маркетинг', 'Команда'],
+            datasets: [{
+                data: [95, 3, 2],
+                backgroundColor: ['#06b6d4', '#f59e0b', '#84cc16'],
+                borderColor: 'rgba(241, 245, 249, 0.9)',
+                borderWidth: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#0f172a',
+                        font: { size: 14 }
+                    }
+                },
+                tooltip: { enabled: true },
+                datalabels: {
+                    color: '#fff',
+                    font: { weight: 'bold', size: 16 },
+                    formatter: (value) => value + '%'
+                }
+            },
+            cutout: '50%',
+        }
+    });
+
+    const carousel = document.getElementById('carousel');
+    const nftImages = [
+        { src: 'https://i.ibb.co/pwnL1d3/1.jpg', label: 'Office 10 m²' },
+        { src: 'https://i.ibb.co/mB7M4M4/2.jpg', label: 'Office 25 m²' },
+        { src: 'https://i.ibb.co/3cq2v6v/3.jpg', label: 'Office 55 m²' },
+        { src: 'https://i.ibb.co/D88G7S9/4.jpg', label: 'Office 115 m²' },
+        { src: 'https://i.ibb.co/MfZgHhV/5.jpg', label: 'Office 180 m²' },
+        { src: 'https://i.ibb.co/yQJ5Fq8/6.jpg', label: 'Office 250 m²' },
+        { src: 'https://i.ibb.co/P991dD1/7.jpg', label: 'Office 480 m²' },
+        { src: 'https://i.ibb.co/Jqj3x0T/8.jpg', label: 'Office 750 m²' }
+    ];
+
+    nftImages.forEach(nft => {
+        const item = document.createElement('div');
+        item.className = 'carousel-item relative rounded-lg overflow-hidden shadow-lg';
+        item.innerHTML = `
+            <img src="${nft.src}" alt="${nft.label}" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-black/50 text-white">
+                <h4 class="font-bold text-lg">${nft.label}</h4>
+            </div>
+        `;
+        carousel.appendChild(item);
+    });
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    carousel.addEventListener('mousedown', (e) => {
+        isDown = true;
+        carousel.classList.add('cursor-grabbing');
+        startX = e.pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+    });
+    carousel.addEventListener('mouseleave', () => {
+        isDown = false;
+        carousel.classList.remove('cursor-grabbing');
+    });
+    carousel.addEventListener('mouseup', () => {
+        isDown = false;
+        carousel.classList.remove('cursor-grabbing');
+    });
+    carousel.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 2; //scroll-fast
+        carousel.scrollLeft = scrollLeft - walk;
+    });
+
+
+    const cityChart = createChart(document.getElementById('cityChart').getContext('2d'), {labels: baseData.city.labels, datasets: [{data:[], backgroundColor: baseData.city.colors}]});
+    const districtChart = createChart(document.getElementById('districtChart').getContext('2d'), {labels: baseData.district.labels, datasets: [{data:[], backgroundColor: baseData.district.colors}]});
+    const buildingChart = createChart(document.getElementById('buildingChart').getContext('2d'), {labels: baseData.building.labels, datasets: [{data:[], backgroundColor: baseData.building.colors}]});
+
+    function calculateDynamicDistribution(baseDist, growthFactor, progress) {
+        const bonus = growthFactor * progress;
+        let newDist = [...baseDist];
+        newDist[0] = Math.min(baseDist[0] + bonus, 95);
+        let remainingSum = 100 - newDist[0];
+        const originalSumOfOthers = baseDist.slice(1).reduce((a, b) => a + b, 0);
+        if (originalSumOfOthers > 0) {
+            for (let i = 1; i < newDist.length; i++) {
+                 newDist[i] = (baseDist[i] / originalSumOfOthers) * remainingSum;
+            }
+        }
+        return newDist;
+    }
+
+    function updateAllCharts() {
+        const totalValue = parseInt(totalRentSlider.value);
+        const min = parseInt(totalRentSlider.min);
+        const max = parseInt(totalRentSlider.max);
+        totalRentValue.textContent = totalValue.toLocaleString('ru-RU');
+
+        const progress = (totalValue - min) / (max - min);
+
+        let cityAEfficiency = 0;
+        citySliders.forEach(slider => {
+            cityAEfficiency += parseFloat(slider.value);
+        });
+        cityAEfficiency /= citySliders.length; 
+
+        const cityAShare = 30 + (80 - 30) * ((cityAEfficiency - 0.5) / 0.5);
+        const cityDist = [cityAShare, 100 - cityAShare];
+
+        cityChart.data.datasets[0].data = cityDist;
+        cityChart.pool = totalValue;
+        cityChart.update();
+
+        const districtDist = calculateDynamicDistribution(baseData.district.base, baseData.district.growthFactor, progress);
+        const districtPool = totalValue * (cityDist[0] / 100);
+        districtChart.data.datasets[0].data = districtDist;
+        districtChart.pool = districtPool;
+        districtChart.update();
+        
+        const buildingDist = calculateDynamicDistribution(baseData.building.base, baseData.building.growthFactor, progress);
+        const buildingPool = districtPool * (districtDist[0] / 100);
+        buildingChart.data.datasets[0].data = buildingDist;
+        buildingChart.pool = buildingPool;
+        buildingChart.update();
+    }
+    
+    totalRentSlider.addEventListener('input', updateAllCharts);
+
+    citySliders.forEach(slider => {
+        const valueDisplay = slider.previousElementSibling.querySelector('.slider-value');
+        slider.addEventListener('input', () => {
+            valueDisplay.textContent = parseFloat(slider.value).toFixed(2);
+            updateAllCharts();
+        });
+    });
+
+    function calculateEarnings() {
+        const price = parseFloat(document.querySelector('.office-slider[data-param="price"]').value);
+        const condition = parseFloat(document.querySelector('.office-slider[data-param="condition"]').value);
+        const prestige = parseFloat(document.querySelector('.office-slider[data-param="prestige"]').value);
+        
+        const baseEarningPerSqM = 1; 
+        const priceFactor = price;
+        const conditionFactor = condition;
+        const prestigeFactor = prestige;
+
+        const totalEarning = selectedOfficeSize * baseEarningPerSqM * priceFactor * conditionFactor * prestigeFactor;
+        earningsDisplay.textContent = `${Math.round(totalEarning).toLocaleString('ru-RU')}`;
+    }
+
+    officeSliders.forEach(slider => {
+        const valueDisplay = slider.previousElementSibling.querySelector('.office-slider-value');
+        slider.addEventListener('input', () => {
+             valueDisplay.textContent = parseFloat(slider.value).toFixed(2);
+            calculateEarnings();
+        });
+    });
+
+    officeData.forEach(data => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'text-center';
+
+        const rarityLabel = document.createElement('p');
+        rarityLabel.className = 'text-xs font-bold mb-1';
+        rarityLabel.textContent = data.rarity;
+        if(data.rarity === 'Basic') rarityLabel.classList.add('text-slate-500');
+        if(data.rarity === 'Rare') rarityLabel.classList.add('text-green-500');
+        if(data.rarity === 'Epic') rarityLabel.classList.add('text-blue-500');
+        if(data.rarity === 'Legendary') rarityLabel.classList.add('text-orange-500');
+        wrapper.appendChild(rarityLabel);
+
+        const button = document.createElement('button');
+        const colorClass = data.color || 'bg-slate-200';
+        button.className = `size-btn w-full ${colorClass} hover:opacity-80 text-slate-800 font-semibold py-1 px-2 text-sm rounded-md`;
+        button.textContent = data.size;
+        button.dataset.size = data.size;
+        if (data.size === selectedOfficeSize) {
+            button.classList.add('active');
+        }
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            selectedOfficeSize = parseInt(button.dataset.size);
+            calculateEarnings();
+        });
+        wrapper.appendChild(button);
+        officeSizeSelector.appendChild(wrapper);
+    });
+    
+    assetCards.forEach(card => {
+        const taxButtons = card.querySelectorAll('.tax-btn');
+        const officesSlider = card.querySelector('.offices-slider');
+        const officeCountSpan = card.querySelector('.office-count');
+        const incomeDisplay = card.querySelector('.income-display');
+
+        const calculateIncome = () => {
+            const activeTaxBtn = card.querySelector('.tax-btn.active');
+            const taxRate = activeTaxBtn ? parseFloat(activeTaxBtn.dataset.tax) : 0;
+            const officeCount = parseInt(officesSlider.value);
+            const avgOfficeSize = 50;
+            const rentPrice = 1;
+
+            const totalIncome = officeCount * avgOfficeSize * rentPrice * taxRate;
+            incomeDisplay.textContent = totalIncome.toLocaleString('ru-RU');
+        };
+
+        taxButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                taxButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                calculateIncome();
+            });
+        });
+
+        officesSlider.addEventListener('input', () => {
+            officeCountSpan.textContent = officesSlider.value;
+            calculateIncome();
+        });
+
+        calculateIncome(); 
+    });
+
+
+    function initializeValues() {
+        citySliders.forEach(slider => {
+            const valueDisplay = slider.previousElementSibling.querySelector('.slider-value');
+            valueDisplay.textContent = parseFloat(slider.value).toFixed(2);
+        });
+         officeSliders.forEach(slider => {
+            const valueDisplay = slider.previousElementSibling.querySelector('.office-slider-value');
+            valueDisplay.textContent = parseFloat(slider.value).toFixed(2);
+        });
+        updateAllCharts();
+        calculateEarnings();
+    }
+    
+    initializeValues();
+
+    // Roadmap Chart
+    const roadmapCtx = document.getElementById('roadmapChart').getContext('2d');
+    const roadmapData = {
+        labels: ['Альфа', 'Бета', 'Листинг', 'Релиз', 'Q3 25', 'Q4 25', 'Q1 26', 'Q2 26', 'H2 26'],
+        datasets: [{
+            label: 'Этапы разработки',
+            data: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            fill: true,
+            borderColor: '#22d3ee',
+            backgroundColor: 'rgba(34, 211, 238, 0.2)',
+            tension: 0.4,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#22d3ee',
+            pointRadius: 6,
+            pointHoverRadius: 8
+        }]
+    };
+     const roadmapDescriptions = {
+        'Альфа': '30.06.2025 - запуск тестовой альфа версии проекта',
+        'Бета': '15.07.2025 - запуск бета версии проекта',
+        'Листинг': '20.07.2025 - листинг токена $RENT на биржах',
+        'Релиз': '01.08.2025 - релиз полной версии приложения',
+        'Q3 25': 'Q3 2025 - Добавление новых функций, таких как стейкинг, рулетка, лотерея',
+        'Q4 25': 'Q4 2025 - Добавление Чудес, Диверсий',
+        'Q1 26': 'Q1 2026 - появление Штатов и Страны',
+        'Q2 26': 'Q2 2026 - Расширение применения токена $RENT во внешних приложениях',
+        'H2 26': 'Q3-Q4 2026 - Применение новых механик RWA экономики в экосистеме RealM'
+    };
+
+    new Chart(roadmapCtx, {
+        type: 'line',
+        data: roadmapData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        title: function(tooltipItems) {
+                             return roadmapDescriptions[tooltipItems[0].label];
+                        },
+                        label: function(tooltipItem) {
+                            return '';
+                        }
+                    }
+                },
+                 datalabels: {
+                     display: false
+                 }
+            },
+            scales: {
+                y: {
+                    display: false,
+                },
+                x: {
+                   grid: {
+                       color: 'rgba(51, 65, 85, 0.5)'
+                   },
+                   ticks: {
+                       color: '#94a3b8'
+                   }
+                }
+            }
+        }
+    });
+
+    // FAQ Section
+    const faqContainer = document.getElementById('faq-container');
+    const faqData = [
+        { q: 'Что такое RealMAGNATE?', a: 'Это инновационный экономический симулятор на блокчейне TON, где вы можете владеть, управлять и получать доход от виртуальной недвижимости в виде NFT.' },
+        { q: 'Что такое токен $RENT?', a: 'Это основной игровой токен, который ежедневно начисляется владельцам NFT-офисов. Он используется для всех внутриигровых операций: улучшений, покупок, стейкинга и т.д.' },
+        { q: 'Какие NFT можно приобрести?', a: 'Основной актив - это NFT-офисы разной площади и уникальности. Также можно стать владельцем целых Зданий, Районов и Городов, получая налоговый доход.' },
+        { q: 'Как зарабатывать в игре?', a: 'Есть два основных способа: 1) Сдавать в аренду свои NFT-офисы и получать ежедневные выплаты в $RENT. 2) Владеть крупными активами (Зданиями, Районами) и собирать налоги с арендаторов.' },
+        { q: 'Как определяется мой доход?', a: 'Ваш доход зависит от эффективности управления. Чем лучше параметры вашего офиса (цена, состояние, престиж) по сравнению с конкурентами, тем большую долю общего пула $RENT вы получаете.' },
+        { q: 'Что такое иерархия (Здание, Район, Город)?', a: 'Это многоуровневая система. Эффективность всех офисов в здании определяет его привлекательность. Эффективность зданий определяет привлекательность района, и так далее. Это мотивирует игроков сотрудничать для общего блага.' },
+        { q: 'Могу ли я владеть целым зданием?', a: 'Да. Вы можете приобрести "фундамент" и построить на нем здание, став его единоличным владельцем и получая налоги со всех офисов внутри.' },
+        { q: 'Что такое RWA и как это связано с проектом?', a: 'RWA (Real World Assets) — это токенизация реальных активов. На втором этапе развития проекта мы планируем интегрировать механики RWA, что создаст мост между виртуальной экономикой игры и реальными финансовыми активами.' },
+        { q: 'Где будет торговаться токен $RENT?', a: 'Согласно нашей дорожной карте, листинг токена на криптовалютных биржах запланирован на 20.07.2025.' },
+        { q: 'Какие еще функции планируются?', a: 'В будущем мы планируем добавить стейкинг, лотереи, возможность совершать диверсии против конкурентов и строить уникальные "Чудеса", которые будут давать бонусы всему городу.' },
+        { q: 'На каком блокчейне работает проект?', a: 'Проект построен на блокчейне The Open Network (TON), что обеспечивает высокую скорость транзакций и низкие комиссии.' },
+        { q: 'Как начать играть?', a: 'Для начала вам понадобится кошелек, поддерживающий сеть TON (например, Tonkeeper). После этого вы сможете приобрести свой первый NFT-офис и начать управлять своей бизнес-империей!' },
+    ];
+
+    faqData.forEach((item, index) => {
+        const faqItem = document.createElement('div');
+        faqItem.className = 'faq-item border-b border-slate-300';
+        
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'faq-question flex items-center p-4 cursor-pointer hover:bg-slate-100';
+        questionDiv.innerHTML = `
+            <span class="faq-icon text-cyan-500 text-2xl font-light">+</span>
+            <h4 class="font-semibold flex-1 ml-4">${item.q}</h4>
+        `;
+
+        const answerDiv = document.createElement('div');
+        answerDiv.className = 'faq-answer px-4 pb-4 text-slate-600 ml-12';
+        answerDiv.innerHTML = `<p>${item.a}</p>`;
+        
+        faqItem.appendChild(questionDiv);
+        faqItem.appendChild(answerDiv);
+        faqContainer.appendChild(faqItem);
+
+        questionDiv.addEventListener('click', () => {
+            const currentlyActive = document.querySelector('.faq-item.active');
+            if (currentlyActive && currentlyActive !== faqItem) {
+                currentlyActive.classList.remove('active');
+            }
+            faqItem.classList.toggle('active');
+        });
+    });
+});
+</script>
+</body>
+</html>
