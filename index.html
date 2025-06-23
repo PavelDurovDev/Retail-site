@@ -14,8 +14,6 @@
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -442,15 +440,15 @@
                         </ul>
                     </div>
                      <div>
-                            <div class="max-w-[400px] mx-auto relative" style="height: 400px;">
-                                <canvas id="tokenomicsChart"></canvas>
+                            <div class="max-w-[400px] mx-auto relative" style="height: 520px;">
+                                 <canvas id="tokenomicsChart" width="400" height="520"></canvas>
                             </div>
 
                         </div>
                      </div>
                  </div>
 
-                 <div class="mt-16 space-y-12 px-4 md:px-10">
+                 <div class="mt-16 space-y-12 px-8 md:px-36">
                     <div>
                         <h3 class="text-2xl md:text-3xl font-bold text-yellow-500 mb-4">Этап 1: Внутреннее применение</h3>
                         <p class="text-slate-700">
@@ -535,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById('menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
 
+
     menuBtn.addEventListener('click', () => {
         mobileMenu.classList.toggle('hidden');
     });
@@ -610,7 +609,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     
-    // Create Tokenomics Chart
+const legendBottomPaddingPlugin = {
+  id: 'legendBottomPadding',
+  beforeInit(chart) {
+    const originalFit = chart.legend.fit;
+    chart.legend.fit = function fit() {
+      originalFit.call(this); // исправлено: call вместо bind
+      this.height += 100; // 20px дополнительного отступа снизу
+    };
+  }
+
+
+
+};    
+  // Tokenomics Chart
+const tokenomicsCtx = document.getElementById('tokenomicsChart').getContext('2d');
+new Chart(tokenomicsCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Награды игрокам', 'Маркетинг', 'Команда'],
+    datasets: [{
+      data: [95, 3, 2],
+      backgroundColor: ['#06b6d4', '#f59e0b', '#84cc16'],
+      borderColor: 'rgba(241, 245, 249, 0.9)',
+      borderWidth: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 20,
+        bottom: 10 // увеличьте до нужного значения
+      }
+    },
+    cutout: '50%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#0f172a',
+          font: { size: 14 }
+        }
+      },
+      tooltip: { enabled: true },
+      datalabels: {
+        color: '#0f172a',
+        font: { weight: 'bold', size: 16 },
+        formatter: (value) => value + '%',
+        anchor: 'end',
+        align: 'end',
+        offset: 0,
+        clamp: true,
+        clip: false
+      }
+    }
+  },
+  plugins: [ChartDataLabels]
+});
   
 
     const carousel = document.getElementById('carousel');
@@ -946,59 +1003,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    Chart.register(ChartDataLabels);
-
-    const ctx = document.getElementById('tokenomicsChart').getContext('2d');
-
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Награды игрокам', 'Маркетинг', 'Команда'],
-        datasets: [{
-          data: [95, 3, 2],
-          backgroundColor: ['#06b6d4', '#f59e0b', '#84cc16'],
-          borderColor: 'rgba(241, 245, 249, 0.9)',
-          borderWidth: 4,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            top: 60,
-            bottom: 20
-          }
-        },
-        cutout: '50%',
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#0f172a',
-              font: { size: 14 }
-            }
-          },
-          tooltip: { enabled: true },
-          datalabels: {
-            color: '#0f172a',
-            font: { weight: 'bold', size: 14 },
-            formatter: (value) => value + '%',
-            anchor: 'end',
-            align: 'outside',
-            offset: 50,
-            clamp: false,
-            clip: false
-          }
-        }
-      },
-      plugins: [ChartDataLabels]
-    });
-  });
-</script>
-
 </body>
 <style>
     .faq-answer {
